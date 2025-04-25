@@ -1,32 +1,36 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { PrismaNeon } from '@prisma/adapter-neon';
+// db/prisma.ts
+// db/prisma.ts
 import { PrismaClient } from '@prisma/client';
-import ws from 'ws';
+import { PrismaNeon } from '@prisma/adapter-neon';
 
-// Sets up WebSocket connections, which enables Neon to use WebSocket communication.
-neonConfig.webSocketConstructor = ws;
-const connectionString = `${process.env.DATABASE_URL}`;
+if (!process.env.DATABASE_URL) {
+  throw new Error("Missing env var DATABASE_URL");
+}
 
-// Creates a new connection pool using the provided connection string, allowing multiple concurrent connections.
-const pool = new Pool({ connectionString });
+// 1️⃣ Instantiate the Neon adapter with your connection string
+import { Pool } from '@neondatabase/serverless';
 
-// Instantiates the Prisma adapter using the Neon connection pool to handle the connection between Prisma and Neon.
-const adapter = new PrismaNeon(pool);
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+class PrismaNeonAdapter extends PrismaNeon {
+  async connect() {
+    // Implement the required connect method
+    return this; // Return the adapter instance as required
+  }
+}
 
-// Extends the PrismaClient with a custom result transformer to convert the price and rating fields to strings.
-export const prisma = new PrismaClient({ adapter }).$extends({
-  result: {
-    product: {
-      price: {
-        compute(product) {
-          return product.price.toString();
-        },
-      },
-      rating: {
-        compute(product) {
-          return product.rating.toString();
-        },
-      },
+const adapter = new PrismaNeonAdapter(pool);
+
+// 2️⃣ Create your PrismaClient with that adapter and your result extensions
+
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
     },
   },
+  errorFormat: 'pretty',
+   // Use the adapter directly in the PrismaClient configuration
 });
+// 4️⃣ Use the adapter in your PrismaClient
+export { prisma, adapter };
