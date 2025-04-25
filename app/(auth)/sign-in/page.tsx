@@ -1,9 +1,13 @@
 // app/auth/sign-in/page.tsx
-// import the auth function from the auth.ts file
-// we want to add the shipping and handling of the sign in page
 
+import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 
-
+import { auth } from '@/lib/auth';
+import { APP_NAME } from '@/lib/constants';
+import CredentialsSignInForm from './credentials-signin-form';
 import {
   Card,
   CardContent,
@@ -11,35 +15,29 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Metadata } from 'next';
-import Link from 'next/link';
-import Image from 'next/image';
-import { APP_NAME } from '@/lib/constants';
-import CredentialsSignInForm from './credentials-signin-form'; // ← ensure this filename matches
-import { redirect } from 'next/navigation';
 
-
- 
 export const metadata: Metadata = {
-    title: 'Sign in',
-  };
-  
-  interface SignInPageProps {
-    searchParams: {
-      callbackUrl?: string;
-    };
+  title: 'Sign in',
+};
+
+// Tell TS that `searchParams` is a Promise
+type SignInPageProps = {
+  searchParams: Promise<{
+    callbackUrl?: string;
+  }>;
+};
+
+export default async function SignInPage({
+  searchParams,
+}: SignInPageProps) {
+  // await the promise to get the real object
+  const { callbackUrl } = await searchParams;
+
+  const session = await auth();
+  if (session) {
+    // `redirect()` never returns JSX
+    redirect(callbackUrl || '/');
   }
-  
-  export default async function SignInPage({
-    searchParams,
-  }: SignInPageProps) {
-    const { callbackUrl } = searchParams;
-    const session = await auth();
-  
-    if (session) {
-      // redirect throws behind the scenes
-      redirect(callbackUrl || '/');
-    }
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -67,8 +65,3 @@ export const metadata: Metadata = {
     </div>
   );
 }
-async function auth() {
-    // Simulate authentication logic
-    return null; // Replace with actual session object or null
-}
-
