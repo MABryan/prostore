@@ -1,11 +1,45 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+/**
+ * Here Next Auth will be used to log in users
+ * Users will log in with an email and password
+ * We will use e crypt to hash passwords
+ * JWT is a JSON web token
+ * User logs in with credentials
+ * 1. Check credentials against the database using Prism
+ * 2. If correct, create a JWT for the user (Includes ID, role)
+ * 3. JWT is sent to the server with every request
+ * 4. JWT used to create a session with user details
+ * 5. Session allows app to ID user without re-login
+ * 6. JWT can expire after set time (30 days)
+ */
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// we will use models to create the tables in the database
 
-// we will create our Product model
-// for map add and index 
+// we will use the product model as a reference for the user model
+// we will use the same id generation strategy as the product model
+// we want to use model as a uuid for the id field as we did with the product model
+// we will make the name not optional, but add a default of NO_NAME
+// for email user index we will use the email field as a unique index
+
+// for the account model we will use the same id generation strategy as the product model
+// this will have the provider info for the user
+// we will create a relationship with the user model
+// we will use the userId field as a foreign key to the user model, which will be a user table
+// we will combine the provider and providerAccountId fields as a composite primary key
+
+// we will add a session model to store the session info
+// this will have the sessionToken and userId fields
+// we will use the userId field as a foreign key to the user model, which will be a user table
+
+// we then add the verification token model
+// this will be used to verify the user email
+// we will use the email field as a unique index
+
+// since we edited this file, we need to run the following command to update the database, and
+// create the migration file to create the tables by running 2 commands
+// npx prisma generate
+// npx prisma migrate dev --name add_user_based_tables
+
+// to run type npx prisma studio to see the database in the browser
 
 generator client {
   provider        = "prisma-client-js"
@@ -33,4 +67,59 @@ model Product {
   banner      String?
   createdAt   DateTime @default(now()) @db.Timestamp(6)
   updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String    @default("NO_NAME")
+  email         String    @unique(map: "user_email_idx")
+  emailVerified DateTime? @db.Timestamp(6)
+  image         String?
+  password      String?
+  role          String    @default("user")
+  address       Json?     @db.Json
+  paymentMethod String?
+  createdAt     DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt     DateTime  @updatedAt
+  account       Account[]
+  session       Session[]
+}
+
+model Account {
+  userId            String  @db.Uuid
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @id
+  userId       String   @db.Uuid
+  expires      DateTime @db.Timestamp(6)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
 }

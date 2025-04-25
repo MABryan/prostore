@@ -8,6 +8,8 @@
 // then do a console log to show that the seeding is complete
 // finally we will close the prisma connection
 // run in the terminal with npx tsx ./db/seed 
+// we will delete from the other tables in the database
+// run with npx tsx ./db/seed.ts
 
 
 import { PrismaClient } from '@prisma/client';
@@ -17,9 +19,14 @@ async function main() {
     const prisma = new PrismaClient();
     // we will delete all the products in the database
     await prisma.product.deleteMany();
+    await prisma.account.deleteMany();
+    await prisma.session.deleteMany();
+    await prisma.verificationToken.deleteMany();
+    await prisma.user.deleteMany();
 
     // we will then create the products in the database, with the sampleData.products array
     await prisma.product.createMany({data: sampleData.products});
+    await prisma.user.createMany({data: sampleData.users});
 
     // we will then log that the seeding is complete
     console.log('Seeding complete');

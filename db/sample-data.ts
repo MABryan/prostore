@@ -1,4 +1,29 @@
+// add a users array to the sample data
+// add 2 users to the users array
+// a regular user and an admin user 
+// a salt is generated using the bcrypt-ts-edge library
+// the password is hashed using the salt and the bcrypt-ts-edge library
+
+
+import { hashSync } from "bcrypt-ts-edge";
+
 const sampleData = {
+    users: [
+      // Admin User with a hashed password using the bcrypt-ts-edge library
+      {
+        name: 'John',
+        email: 'admin@example.com',
+        role: 'admin',
+        password: hashSync('admin123', 10), // hashed password
+      },
+      // Regular User with a hashed password using the bcrypt-ts-edge library
+      {
+        name: 'Jane',
+        email: 'user@example.com',
+        role: 'user',
+        password: hashSync('user123', 10), // hashed password
+      }
+    ],
   products: [
     {
       name: 'Polo Sporting Stretch Shirt',
