@@ -56,12 +56,15 @@ const ProductDetailsPage = async (props: {
                  {product.brand} {product.category}
             </p>
             <h1 className="h3-bold">{product.name}</h1>
-            <p>{product.rating} of {product.numReviews} Reviews</p>
+            <p>
+  {product.rating.toString()} of {product.numReviews.toString()} Reviews
+</p>
+
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-3"></div>
 
 
-            <ProductPrice value={parseFloat(product.price)}
+            <ProductPrice value={parseFloat(product.price.toString())}
             className="w-24 rounded-full bg-green-100
             text-green-700 text-center py-1 px-2"
             />
@@ -82,7 +85,7 @@ const ProductDetailsPage = async (props: {
             <div>Price</div>
         </div>
 
-        <ProductPrice value={parseFloat(product.price)} />
+        <ProductPrice value={parseFloat(product.price.toString())} />
         <div className="mb-2 flex justify-between">
             <div>Status</div>
             {product.stock > 0 ? (
